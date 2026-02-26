@@ -38,7 +38,7 @@ export async function registerRoutes(
   });
 
   // WebSocket Server Setup
-  const wss = new WebSocketServer({ server: httpServer, path: '/' });
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
   // In-memory tracking of clients per session
   const clients = new Map<string, Set<{ ws: WebSocket, role: 'tracker' | 'tracked' }>>();

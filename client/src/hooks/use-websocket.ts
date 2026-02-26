@@ -15,7 +15,7 @@ export function useMapWebSocket(sessionId: string, role: "tracker" | "tracked") 
   const connect = useCallback(() => {
     setStatus("connecting");
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/`;
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
     
     const socket = new WebSocket(wsUrl);
     wsRef.current = socket;
