@@ -1,0 +1,39 @@
+Real-Time Geo-Sync (Tracker & Follower)
+Objective
+The goal is to build a web or mobile application that synchronizes map movements between two different user roles (Tracker and Tracked) in real-time. This assignment tests your ability to handle WebSockets (Socket.io), real-time state synchronization, and map API integration.
+Technical Stack Requirements
+Frontend: React.js, Next.js, or React Native.
+Backend: Node.js with Express (MERN) or Next.js API routes.
+Real-time: Socket.io (highly recommended) or WebSockets.
+Map Library: Google Maps API (via react-google-maps) or Leaflet.js.
+Functional Requirements
+1. The Connection System
+Users must be able to join a "Session" or "Room" using a unique ID.
+Upon joining, the system must assign (or allow selection of) two roles:
+The Tracker: The "Master" user who controls the map movement.
+The Tracked: The "Viewer" user who observes the movement.
+2. Dual-Sided Synchronization
+Active Sync: When the "Tracker" pans, tilts, or zooms their map, the "Tracked" user’s map must instantly update to match the exact coordinates (lat, lng) and zoom level.
+Passive Feedback: The "Tracked" user should still see a map, but their manual movements should not override the Tracker's position (or you can implement a "Re-sync to Tracker" button).
+Socket Integration: All movements must be emitted via sockets to ensure latency is kept under 100ms.
+3. Data Overlay (UI)
+A persistent floating HUD (Heads-Up Display) must be visible on both screens showing:
+Current Center Latitude & Longitude.
+Current Zoom Level (e.g., 14.5).
+Connection Status (Connected/Disconnected/Searching).
+4. Role Indicators
+Visually differentiate between the Tracker and the Tracked UI (e.g., a "Broadcasting" badge for the Tracker and a "Syncing" badge for the Tracked).
+Technical Constraints & Challenges
+Debouncing: Ensure you aren't flooding the socket with 60 updates per second during a smooth pan; implement a slight debounce or throttle for performance.
+Edge Cases: Handle what happens if the "Tracker" disconnects mid-session.
+Precision: Use high-precision floats for coordinates to ensure both maps look identical down to the street level.
+Evaluation Criteria
+Synchronization Quality: How smooth is the movement on the Tracked side? Is there jitter or lag?
+Code Architecture: How well are the socket listeners managed? Are there memory leaks (e.g., redundant listeners)?
+UI/UX: Is the interface clean and responsive on different screen sizes?
+Error Handling: Graceful handling of API failures or socket timeouts.
+Submission Guidelines
+Provide a GitHub repository with a clear README.md on how to run both the Client and the Server.
+Include a .env.example file for any Map API keys required.
+(Optional but Recommended) A hosted demo link (Vercel/Render/Railway).
+
