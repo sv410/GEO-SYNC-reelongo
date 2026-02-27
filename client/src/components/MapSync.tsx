@@ -3,8 +3,8 @@ import { useMap, useMapEvents } from "react-leaflet";
 
 interface MapSyncProps {
   role: "tracker" | "tracked";
-  onLocationChange?: (lat: number, lng: number, zoom: number) => void;
-  externalLocation?: { lat: number; lng: number; zoom: number } | null;
+  onLocationChange?: (lat: number, lng: number, zoom: number, tilt: number) => void;
+  externalLocation?: { lat: number; lng: number; zoom: number; tilt: number } | null;
 }
 
 export function MapSync({ role, onLocationChange, externalLocation }: MapSyncProps) {
@@ -15,13 +15,13 @@ export function MapSync({ role, onLocationChange, externalLocation }: MapSyncPro
     moveend: () => {
       if (role === "tracker" && onLocationChange) {
         const center = map.getCenter();
-        onLocationChange(center.lat, center.lng, map.getZoom());
+        onLocationChange(center.lat, center.lng, map.getZoom(), externalLocation?.tilt ?? 0);
       }
     },
     zoomend: () => {
       if (role === "tracker" && onLocationChange) {
         const center = map.getCenter();
-        onLocationChange(center.lat, center.lng, map.getZoom());
+        onLocationChange(center.lat, center.lng, map.getZoom(), externalLocation?.tilt ?? 0);
       }
     }
   });

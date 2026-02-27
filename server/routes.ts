@@ -42,6 +42,7 @@ export async function registerRoutes(
 
   // In-memory tracking of clients per session
   const clients = new Map<string, Set<{ ws: WebSocket, role: 'tracker' | 'tracked' }>>();
+  const sessionTilt = new Map<string, number>();
 
   wss.on('connection', (ws) => {
     let currentSessionId: string | null = null;
@@ -67,7 +68,13 @@ export async function registerRoutes(
             const hasTracker = Array.from(clients.get(currentSessionId) || []).some(c => c.role === 'tracker');
             ws.send(JSON.stringify({
               type: 'session-state',
-              payload: { lat: session.lat, lng: session.lng, zoom: session.zoom, trackerActive: hasTracker }
+              payload: {
+                lat: session.lat,
+                lng: session.lng,
+                zoom: session.zoom,
+                tilt: sessionTilt.get(currentSessionId) ?? 0,
+                trackerActive: hasTracker,
+              }
             }));
           }
 
@@ -81,6 +88,7 @@ export async function registerRoutes(
           }
         } else if (data.type === 'update-location' && currentRole === 'tracker') {
           const payload = wsSchemas.send.updateLocation.parse(data.payload);
+          sessionTilt.set(payload.sessionId, payload.tilt);
           
           // Background DB update (don't block the WebSocket response)
           storage.updateSessionLocation(payload.sessionId, payload.lat, payload.lng, payload.zoom).catch(console.error);
@@ -91,7 +99,14 @@ export async function registerRoutes(
               if (client.role === 'tracked' && client.ws.readyState === WebSocket.OPEN) {
                 client.ws.send(JSON.stringify({
                   type: 'location-updated',
-                  payload: { lat: payload.lat, lng: payload.lng, zoom: payload.zoom }
+                  payload: {
+                    lat: payload.lat,
+                    lng: payload.lng,
+                    zoom: payload.zoom,
+                    tilt: payload.tilt,
+                    sentAt: payload.sentAt,
+                    serverAt: Date.now(),
+                  }
                 }));
               }
             });
@@ -105,7 +120,7 @@ export async function registerRoutes(
     ws.on('close', () => {
       if (currentSessionId && clients.has(currentSessionId)) {
         const sessionClients = clients.get(currentSessionId)!;
-        for (const client of sessionClients) {
+        sessionClients.forEach((client) => {
           if (client.ws === ws) {
             sessionClients.delete(client);
             if (currentRole === 'tracker') {
@@ -116,11 +131,11 @@ export async function registerRoutes(
                 }
               });
             }
-            break;
           }
-        }
+        });
         if (sessionClients.size === 0) {
           clients.delete(currentSessionId);
+          sessionTilt.delete(currentSessionId);
         }
       }
     });

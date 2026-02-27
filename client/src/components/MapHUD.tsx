@@ -9,9 +9,13 @@ interface MapHUDProps {
   lat: number;
   lng: number;
   zoom: number;
+  tilt: number;
+  latencyMs: number | null;
+  avgLatencyMs: number | null;
+  onTiltChange?: (tilt: number) => void;
 }
 
-export function MapHUD({ sessionId, role, wsStatus, trackerActive, lat, lng, zoom }: MapHUDProps) {
+export function MapHUD({ sessionId, role, wsStatus, trackerActive, lat, lng, zoom, tilt, latencyMs, avgLatencyMs, onTiltChange }: MapHUDProps) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
@@ -49,6 +53,17 @@ export function MapHUD({ sessionId, role, wsStatus, trackerActive, lat, lng, zoo
             </span>
             <span className="font-mono text-sm font-medium">{lng.toFixed(5)}°</span>
           </div>
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground mb-1">Tilt</span>
+            <span className="font-mono text-sm font-medium">{tilt.toFixed(1)}°</span>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs text-muted-foreground mb-1">Latency</span>
+            <span className={`font-mono text-sm font-medium ${(latencyMs ?? 0) > 100 ? "text-destructive" : "text-foreground"}`}>
+              {latencyMs === null ? "--" : `${latencyMs}ms`}
+              {avgLatencyMs !== null ? ` (avg ${avgLatencyMs}ms)` : ""}
+            </span>
+          </div>
         </div>
         
         <div className="flex items-center justify-between">
@@ -62,6 +77,24 @@ export function MapHUD({ sessionId, role, wsStatus, trackerActive, lat, lng, zoo
              <StatusBadge role={role} wsStatus={wsStatus} trackerActive={trackerActive} />
           </div>
         </div>
+
+        {role === "tracker" && onTiltChange && (
+          <div className="mt-4">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">Tilt Control</span>
+              <span className="text-xs font-mono text-foreground">{tilt.toFixed(1)}°</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={60}
+              step={0.5}
+              value={tilt}
+              onChange={(event) => onTiltChange(Number(event.target.value))}
+              className="w-full accent-[hsl(var(--primary))]"
+            />
+          </div>
+        )}
 
       </div>
 

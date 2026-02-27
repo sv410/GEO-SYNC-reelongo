@@ -23,13 +23,14 @@ export default function SessionRoom() {
   const [currentView, setCurrentView] = useState({ 
     lat: 51.505, 
     lng: -0.09, 
-    zoom: 13 
+    zoom: 13,
+    tilt: 0,
   });
 
   // When session loads initially, set the center
   useEffect(() => {
     if (session && !wsState.lastLocation) {
-      setCurrentView({ lat: session.lat, lng: session.lng, zoom: session.zoom });
+      setCurrentView({ lat: session.lat, lng: session.lng, zoom: session.zoom, tilt: 0 });
     }
   }, [session, wsState.lastLocation]);
 
@@ -40,9 +41,13 @@ export default function SessionRoom() {
     }
   }, [wsState.lastLocation]);
 
-  const handleTrackerMove = (lat: number, lng: number, zoom: number) => {
-    setCurrentView({ lat, lng, zoom });
-    wsState.sendLocationUpdate(lat, lng, zoom);
+  const handleTrackerMove = (lat: number, lng: number, zoom: number, tilt: number) => {
+    setCurrentView({ lat, lng, zoom, tilt });
+    wsState.sendLocationUpdate(lat, lng, zoom, tilt);
+  };
+
+  const handleTiltChange = (tilt: number) => {
+    handleTrackerMove(currentView.lat, currentView.lng, currentView.zoom, tilt);
   };
 
   if (isLoading) {
@@ -102,26 +107,39 @@ export default function SessionRoom() {
         lat={currentView.lat}
         lng={currentView.lng}
         zoom={currentView.zoom}
+        tilt={currentView.tilt}
+        latencyMs={wsState.latencyMs}
+        avgLatencyMs={wsState.avgLatencyMs}
+        onTiltChange={role === "tracker" ? handleTiltChange : undefined}
       />
 
       {/* Map Engine */}
-      <MapContainer 
-        center={initCenter} 
-        zoom={initZoom} 
-        zoomControl={false} // Hide default zoom controls for cleaner UI
-        className="w-full h-full z-0 outline-none"
+      <div
+        className="w-full h-full"
+        style={{
+          transform: `perspective(1400px) rotateX(${currentView.tilt}deg)`,
+          transformOrigin: "center bottom",
+          transition: "transform 120ms linear",
+        }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        
-        <MapSync 
-          role={role} 
-          onLocationChange={handleTrackerMove}
-          externalLocation={wsState.lastLocation}
-        />
-      </MapContainer>
+        <MapContainer 
+          center={initCenter} 
+          zoom={initZoom} 
+          zoomControl={false} // Hide default zoom controls for cleaner UI
+          className="w-full h-full z-0 outline-none"
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          <MapSync 
+            role={role} 
+            onLocationChange={handleTrackerMove}
+            externalLocation={wsState.lastLocation}
+          />
+        </MapContainer>
+      </div>
     </div>
   );
 }

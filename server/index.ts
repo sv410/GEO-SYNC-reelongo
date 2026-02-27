@@ -80,9 +80,11 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
-  } else {
+  } else if (process.env.API_ONLY !== "true") {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
+  } else {
+    log("running in API_ONLY mode (without Vite middleware)");
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
@@ -94,7 +96,6 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);
