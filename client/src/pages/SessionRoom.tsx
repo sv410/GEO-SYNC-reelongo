@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, useSearch } from "wouter";
+import { useParams, useSearch, Link } from "wouter";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { useGetSession } from "@/hooks/use-sessions";
 import { useMapWebSocket } from "@/hooks/use-websocket";
 import { MapHUD } from "@/components/MapHUD";
 import { MapSync } from "@/components/MapSync";
-import { Loader2 } from "lucide-react";
+import { Loader2, LogOut } from "lucide-react";
 
 export default function SessionRoom() {
   const { id } = useParams<{ id: string }>();
@@ -62,9 +62,11 @@ export default function SessionRoom() {
         </div>
         <h2 className="font-display font-bold text-2xl mb-2">Session Not Found</h2>
         <p className="text-muted-foreground max-w-md mb-6">The session ID you requested does not exist or could not be loaded.</p>
-        <a href="/" className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors">
-          Return Home
-        </a>
+        <Link href="/">
+          <a className="px-6 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors">
+            Return Home
+          </a>
+        </Link>
       </div>
     );
   }
@@ -78,6 +80,18 @@ export default function SessionRoom() {
 
   return (
     <div className="w-screen h-screen relative bg-background overflow-hidden">
+      {/* Leave Session Button */}
+      <div className="absolute top-4 left-4 z-[1001] pointer-events-auto">
+        <Link href="/">
+          <button 
+            className="flex items-center gap-2 px-3 py-2 bg-card/80 backdrop-blur-md border border-white/10 rounded-lg text-muted-foreground hover:text-destructive hover:border-destructive/30 transition-all duration-200 shadow-lg group"
+            data-testid="button-leave-session"
+          >
+            <LogOut className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            <span className="text-xs font-bold uppercase tracking-wider">Leave</span>
+          </button>
+        </Link>
+      </div>
       
       {/* HUD Overlay */}
       <MapHUD 
@@ -97,7 +111,6 @@ export default function SessionRoom() {
         zoomControl={false} // Hide default zoom controls for cleaner UI
         className="w-full h-full z-0 outline-none"
       >
-        {/* Dark-themed Map Tiles (CartoDB Dark Matter) */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
